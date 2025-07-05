@@ -1,0 +1,40 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "VSCode Launcher",
+      "cargo": {
+        "args": ["build", "--bin=vscode-launcher", "--package=vscode-launcher"],
+        "filter": {
+          "name": "vscode-launcher",
+          "kind": "bin"
+        }
+      },
+      "env": {},
+      "args": [],
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "VSCode Launcher Opt",
+      "cargo": {
+        "args": [
+          "build",
+          "--bin=vscode-launcher",
+          "--package=vscode-launcher",
+          "--release"
+        ],
+        "filter": {
+          "name": "vscode-launcher",
+          "kind": "bin"
+        }
+      },
+      "env": {},
+      "args": [],
+      "cwd": "${workspaceFolder}"
+    }
+  ]
+}
