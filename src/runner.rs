@@ -20,7 +20,7 @@ pub fn run_config(configuration: Configuration) {
     })
     .expect("Error setting Ctrl-C handler");
 
-    let _ = if cfg!(target_os = "windows") {
+    if cfg!(target_os = "windows") {
         Command::new("cmd")
             .args(["/C", "echo hello"])
             .output()
@@ -66,18 +66,14 @@ pub fn run_config(configuration: Configuration) {
         let stderr_reader = BufReader::new(stderr);
 
         let stdout_handle = std::thread::spawn(move || {
-            for line in stdout_reader.lines() {
-                if let Ok(line) = line {
-                    println!("{}", line);
-                }
+            for line in stdout_reader.lines().map_while(Result::ok) {
+                println!("{}", line);
             }
         });
 
         let stderr_handle = std::thread::spawn(move || {
-            for line in stderr_reader.lines() {
-                if let Ok(line) = line {
-                    println!("{}", line);
-                }
+            for line in stderr_reader.lines().map_while(Result::ok) {
+                println!("{}", line);
             }
         });
 
@@ -85,6 +81,7 @@ pub fn run_config(configuration: Configuration) {
         debug!("Command in execution, waiting it to complete.");
         // loop until the running variable is set to false
         // in this case, kill the child process and close the threads
+        child.try_wait().unwrap();
         while running.load(Ordering::SeqCst) {
             child.try_wait().unwrap();
         }
@@ -93,5 +90,5 @@ pub fn run_config(configuration: Configuration) {
         stdout_handle.join().unwrap();
         stderr_handle.join().unwrap();
         debug!("Execution completed, closing.")
-    };
+    }
 }
