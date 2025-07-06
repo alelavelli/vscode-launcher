@@ -76,7 +76,7 @@ pub fn run_config(configuration: Configuration) {
         let stderr_handle = std::thread::spawn(move || {
             for line in stderr_reader.lines() {
                 if let Ok(line) = line {
-                    eprintln!("{}", line);
+                    println!("{}", line);
                 }
             }
         });
