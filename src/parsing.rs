@@ -1,4 +1,5 @@
 use serde_json;
+use std::collections::HashMap;
 use std::{error::Error, fs::File, io::Read, path::Path};
 use tracing::debug;
 
@@ -20,7 +21,7 @@ pub fn parse_launch_json(path: &Path) -> Result<LaunchJson, Box<dyn Error>> {
     for line in file_string.lines() {
         if !line.trim_ascii_start().starts_with("//") {
             // Replace the workspace placeholder with the actual path
-            cleaned_string.push_str(&line.replace(WORKSPACE_FOLDER, path.to_str().unwrap()));
+            cleaned_string.push_str(&line.replace(WORKSPACE_FOLDER, ".")); //path.to_str().unwrap()));
         }
     }
 
@@ -37,4 +38,26 @@ pub fn parse_launch_json(path: &Path) -> Result<LaunchJson, Box<dyn Error>> {
 
     debug!(?launch_json, "Parsing completed");
     Ok(launch_json)
+}
+
+#[tracing::instrument]
+pub fn parse_dotenv(path: &Path) -> Result<HashMap<String, String>, Box<dyn Error>> {
+    let mut result = HashMap::new();
+    let mut file = File::open(path)?;
+    let mut env_file_string = String::new();
+    file.read_to_string(&mut env_file_string)?;
+
+    for line in env_file_string.lines() {
+        let mut parts = line.splitn(2, '=');
+        let key = parts.next().unwrap_or("").trim();
+        let mut value = parts.next().unwrap_or("").trim();
+        if value.starts_with('"') && value.ends_with('"') && value.len() >= 2 {
+            value = &value[1..value.len() - 1];
+        }
+
+        if !key.is_empty() {
+            result.insert(key.into(), value.into());
+        }
+    }
+    Ok(result)
 }

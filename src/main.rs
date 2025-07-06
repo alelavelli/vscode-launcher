@@ -93,7 +93,13 @@ fn main() {
                     )
                 } else {
                     println!("Ready to run configuration {name}");
-                    run_config(filter_configuration.into_iter().next().unwrap());
+                    let result = run_config(filter_configuration.into_iter().next().unwrap());
+                    if result.is_err() {
+                        println!(
+                            "Ops, an error has been occurred. Got {}",
+                            result.err().unwrap()
+                        );
+                    }
                 }
             }
         }

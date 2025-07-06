@@ -1,13 +1,16 @@
 use tracing::debug;
 
 use crate::model::Configuration;
+use crate::parsing::parse_dotenv;
+use std::error::Error;
 use std::io::{BufRead, BufReader};
+use std::path::Path;
 use std::process::{Command, Stdio};
 use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
 
 #[tracing::instrument]
-pub fn run_config(configuration: Configuration) {
+pub fn run_config(configuration: Configuration) -> Result<(), Box<dyn Error>> {
     // We use ctrlc create to gracefully stop on ctrl-c SIGINT signal
     // To do that, we use a running boolean variable used to determine the
     // close of the program
@@ -25,6 +28,7 @@ pub fn run_config(configuration: Configuration) {
             .args(["/C", "echo hello"])
             .output()
             .expect("failed to execute process");
+        Ok(())
     } else {
         debug!("Executing in linux os");
         let python = configuration.python.unwrap();
@@ -35,7 +39,7 @@ pub fn run_config(configuration: Configuration) {
         let mut command = Command::new("sh");
 
         // Set as current working directory the workspace folder
-        if let Some(cwd) = configuration.cwd {
+        if let Some(cwd) = &configuration.cwd {
             debug!(cwd, "Setting current working directory");
             command.current_dir(cwd);
         }
@@ -46,6 +50,18 @@ pub fn run_config(configuration: Configuration) {
         // Set environment variables
         if let Some(env_vars) = configuration.env {
             command.envs(env_vars);
+        }
+
+        // If envFile is specified then we open the .env file and load them as environment variables
+        if let Some(env_file_path) = configuration.env_file {
+            let base_path = if let Some(cwd) = &configuration.cwd {
+                Path::new(cwd)
+            } else {
+                Path::new("")
+            };
+
+            let env_file_vars = parse_dotenv(&base_path.join(env_file_path))?;
+            command.envs(env_file_vars);
         }
 
         debug!("Preparing stdout and stderr channels");
@@ -89,6 +105,7 @@ pub fn run_config(configuration: Configuration) {
         debug!("Command completed, closing stdout and stderr threads");
         stdout_handle.join().unwrap();
         stderr_handle.join().unwrap();
-        debug!("Execution completed, closing.")
+        debug!("Execution completed, closing.");
+        Ok(())
     }
 }
