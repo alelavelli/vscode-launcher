@@ -1,10 +1,10 @@
 use clap::{Parser, Subcommand};
-use vscode_launcher::model::Configuration;
+use vscl::model::Configuration;
 
 use std::path::Path;
 
-use vscode_launcher::parsing::parse_launch_json;
-use vscode_launcher::runner::run_config;
+use vscl::parsing::parse_launch_json;
+use vscl::runner::run_config;
 
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]
