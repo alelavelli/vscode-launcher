@@ -16,3 +16,27 @@ This is not a scalable solution because I need to remember every time I run the 
 So, I decided to leave the environment variables and all the other configuration directly inside the `launch.json` file and use a CLI tool to parse it and run the proper configuration.
 
 Yes, I'm over engineering all of this BUT it is just an excuse to develop a CLI tool with Rust ;)
+
+## Usage
+
+`vscl` CLI has two simple commands: one to list the available launch configurations and the other to run a specific configuration.
+
+### List configurations
+
+```sh
+vscl ls -w <WORKSPACE>
+```
+
+expected output:
+
+```sh
+The workspace <WORKSPACE> contains the following configurations:
+    - Configuration 1
+    - Configuration 2
+```
+
+### Run configuration
+
+```sh
+vscl run -w <WORKSPACE> -n <CONFIGURATION>
+```
