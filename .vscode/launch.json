@@ -6,14 +6,13 @@
       "request": "launch",
       "name": "VSCode Launcher",
       "cargo": {
-        "args": ["build", "--bin=vscode-launcher", "--package=vscode-launcher"],
+        "args": ["build", "--bin=vscl", "--package=vscl"],
         "filter": {
-          "name": "vscode-launcher",
+          "name": "vscl",
           "kind": "bin"
         }
       },
       "env": {},
-      "args": [],
       "cwd": "${workspaceFolder}"
     },
     {
@@ -21,14 +20,9 @@
       "request": "launch",
       "name": "VSCode Launcher Opt",
       "cargo": {
-        "args": [
-          "build",
-          "--bin=vscode-launcher",
-          "--package=vscode-launcher",
-          "--release"
-        ],
+        "args": ["build", "--bin=vscl", "--package=vscl", "--release"],
         "filter": {
-          "name": "vscode-launcher",
+          "name": "vscl",
           "kind": "bin"
         }
       },

@@ -30,9 +30,22 @@ pub fn run_config(configuration: Configuration) -> Result<(), Box<dyn Error>> {
             .expect("failed to execute process");
         Ok(())
     } else {
+        /*
+        We build the command step by step adding the values present in the configuration.
+
+        - The arguments are the python bin and the program to execute.
+        - If cwd is present, then we set it so that the program will be run in the right place.
+        - If args is present, then we extract string values and append them to the program string.
+          They are arguments of the python program and not of the current command, therefore, we
+          put them into the program string
+        - if env is present, then we add them as environment variables of the command
+        - if env_file is present, then we load it, extract the variables and add them as environment
+          variables of the command
+        */
+
         debug!("Executing in linux os");
         let python = configuration.python.unwrap();
-        let program = configuration.program.unwrap();
+        let mut program = configuration.program.unwrap();
 
         debug!("Launching command: {} {}", python, program);
 
@@ -45,6 +58,17 @@ pub fn run_config(configuration: Configuration) -> Result<(), Box<dyn Error>> {
         }
 
         // Set program to launch via python interpreter
+        if let Some(args_value) = configuration.args {
+            //let mut args: Vec<String> = vec![];
+            if let Some(args_vec_value) = args_value.as_array() {
+                for elem in args_vec_value {
+                    if let Some(string_args) = elem.as_str() {
+                        program.push(' ');
+                        program.push_str(string_args.into());
+                    }
+                }
+            }
+        }
         command.arg("-c").arg(format!("{} {}", python, program));
 
         // Set environment variables
@@ -69,6 +93,7 @@ pub fn run_config(configuration: Configuration) -> Result<(), Box<dyn Error>> {
         command.stdout(Stdio::piped()).stderr(Stdio::piped());
 
         // Launch the process and get the handler
+        debug!("Ready to start command {:?}", command.get_args());
         let mut child = command.spawn().expect("failed to execute process");
 
         /*
@@ -99,7 +124,11 @@ pub fn run_config(configuration: Configuration) -> Result<(), Box<dyn Error>> {
         // in this case, kill the child process and close the threads
         child.try_wait().unwrap();
         while running.load(Ordering::SeqCst) {
-            child.try_wait().unwrap();
+            let result = child.try_wait().unwrap();
+            if result.is_some() {
+                debug!("Got {:?}", result);
+                running.store(false, Ordering::SeqCst);
+            }
         }
         child.kill().unwrap();
         debug!("Command completed, closing stdout and stderr threads");

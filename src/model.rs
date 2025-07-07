@@ -25,4 +25,6 @@ pub struct Configuration {
     pub env: Option<HashMap<String, String>>,
     #[serde(rename = "envFile", skip_serializing_if = "Option::is_none")]
     pub env_file: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub args: Option<serde_json::Value>,
 }
