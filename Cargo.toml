@@ -1,5 +1,10 @@
 [package]
 name = "vscl"
+description = """
+vscl is a simple tool to execute VS Code launch configurations directly from the terminal,
+without needing to open the VS Code editor. It supports listing and running configurations
+defined in launch.json, and can handle environment variables and .env files for your projects.
+"""
 version = "0.1.0"
 edition = "2024"
 
