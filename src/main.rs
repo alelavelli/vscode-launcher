@@ -64,7 +64,7 @@ fn main() {
                 let launch_json = result.unwrap();
                 println!("The workspace {workspace} contains the following configurations:");
                 for config in launch_json.configurations {
-                    println!("    - {}", config.name);
+                    println!("    - {} ({})", config.name, config.programming_language);
                 }
             }
         }

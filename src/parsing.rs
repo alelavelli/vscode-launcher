@@ -4,6 +4,7 @@ use std::{error::Error, fs::File, io::Read, path::Path};
 use tracing::debug;
 
 use crate::WORKSPACE_FOLDER;
+use crate::enums::ProgrammingLanguage;
 use crate::model::LaunchJson;
 
 #[tracing::instrument]
@@ -28,11 +29,20 @@ pub fn parse_launch_json(path: &Path) -> Result<LaunchJson, Box<dyn Error>> {
     debug!("File cleaned, start parsing raw string to LaunchJson struct");
     let mut launch_json: LaunchJson = serde_json::from_str(&cleaned_string)?;
 
-    debug!("Setting cwd attribute with path as default");
+    debug!(
+        "Setting cwd attribute with path as default and defining the configuration programming language."
+    );
     // Set cwd as the given path if it is missing in the configuration
     for configuration in launch_json.configurations.iter_mut() {
         if configuration.cwd.is_none() | configuration.cwd.as_ref().is_some_and(|cwd| cwd == ".") {
             configuration.cwd = Some(path.to_str().unwrap().into());
+        }
+
+        match configuration.config_type.as_str() {
+            "debugpy" => configuration.programming_language = ProgrammingLanguage::Python,
+            "node-terminal" => configuration.programming_language = ProgrammingLanguage::JavaScript,
+            "lldb" => configuration.programming_language = ProgrammingLanguage::Rust,
+            _ => configuration.programming_language = ProgrammingLanguage::Unknown,
         }
     }
 

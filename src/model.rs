@@ -1,6 +1,8 @@
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
+use crate::enums::ProgrammingLanguage;
+
 #[derive(Debug, Serialize, Deserialize)]
 pub struct LaunchJson {
     pub version: String,
@@ -9,6 +11,8 @@ pub struct LaunchJson {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Configuration {
+    #[serde(default = "ProgrammingLanguage::default")]
+    pub programming_language: ProgrammingLanguage,
     pub name: String,
     #[serde(rename = "type")]
     pub config_type: String,
@@ -27,4 +31,12 @@ pub struct Configuration {
     pub env_file: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub args: Option<serde_json::Value>,
+    pub command: Option<String>,
+    pub cargo: Option<CargoConfig>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct CargoConfig {
+    pub args: Vec<String>,
+    pub filter: Option<HashMap<String, String>>,
 }

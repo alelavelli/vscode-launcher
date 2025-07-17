@@ -1,3 +1,5 @@
+mod enums;
+mod error;
 pub mod model;
 pub mod parsing;
 pub mod runner;
