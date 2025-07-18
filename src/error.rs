@@ -6,6 +6,7 @@ pub enum RunnerError {
     UnknownProgrammingLanguage,
     InvalidConfiguration(String),
     GenericError(String),
+    BuildError(String),
 }
 
 impl Display for RunnerError {
@@ -18,6 +19,7 @@ impl Display for RunnerError {
                     "Programming language must be known to launch the configuration".to_string(),
                 RunnerError::InvalidConfiguration(message) => message.clone(),
                 RunnerError::GenericError(message) => format!("Got error: {message}"),
+                RunnerError::BuildError(message) => format!("Build error: {message}"),
             }
         )
     }

@@ -10,6 +10,13 @@ use std::process::{Command, Stdio};
 use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
 
+/// Update the command to run a python program
+///
+/// It requires python and program to be specified in the configuration
+/// and add them as command arguments.
+///
+/// If additional program arguments are present then they extends the program
+/// string.
 fn configure_python(
     configuration: &Configuration,
     command: &mut Command,
@@ -54,11 +61,74 @@ fn configure_javascript(
     todo!()
 }
 
-fn configure_rust(
-    _configuration: &Configuration,
-    _command: &mut Command,
-) -> Result<(), RunnerError> {
-    todo!()
+/// Prepare the configuration to run a Rust program.
+///
+/// First the program needs to be built, hence, it runs a separate
+/// build command.
+///
+/// It the build is successful then according to release flag the right binary is
+/// used as argument for the actual command
+fn configure_rust(configuration: &Configuration, command: &mut Command) -> Result<(), RunnerError> {
+    let cargo = configuration
+        .cargo
+        .as_ref()
+        .ok_or(RunnerError::InvalidConfiguration(
+            "In Rust configuration, cargo field must be present.".into(),
+        ))?;
+
+    if cargo.args.contains(&"build".to_string()) {
+        let mut build_command = if cfg!(target_os = "windows") {
+            let mut command = Command::new("cmd");
+            command.arg("/C");
+            command
+        } else {
+            debug!("Executing in linux os");
+            let mut command = Command::new("sh");
+            command.arg("-c");
+            command
+        };
+
+        let build_arg = format!("cargo {}", cargo.args.join(" "));
+        build_command.arg(&build_arg);
+
+        if let Some(cwd) = command.get_current_dir() {
+            build_command.current_dir(cwd);
+        }
+
+        let output = build_command
+            .output()
+            .map_err(|e| RunnerError::GenericError(e.to_string()))?;
+
+        if !output.status.success() {
+            Err(RunnerError::BuildError(
+                String::from_utf8_lossy(&output.stderr).to_string(),
+            ))
+        } else {
+            let package = cargo
+                .args
+                .iter()
+                .find_map(|elem| {
+                    elem.strip_prefix("--package=")
+                        .map(|package| package.to_string())
+                })
+                .ok_or(RunnerError::InvalidConfiguration(format!(
+                    "Expecting package in cargo arguments. Got {}",
+                    cargo.args.join(" ")
+                )))?;
+
+            if cargo.args.contains(&"--release".to_string()) {
+                command.arg(format!("./target/release/{package}"));
+            } else {
+                command.arg(format!("./target/debug/{package}"));
+            }
+            Ok(())
+        }
+    } else {
+        Err(RunnerError::InvalidConfiguration(format!(
+            "Expecting build in cargo arguments. Got {}",
+            cargo.args.join(" ")
+        )))
+    }
 }
 
 /// Run the configuration
@@ -98,17 +168,17 @@ pub fn run_config(configuration: Configuration) -> Result<(), RunnerError> {
         command
     };
 
+    // Set as current working directory the workspace folder
+    if let Some(cwd) = &configuration.cwd {
+        debug!(cwd, "Setting current working directory");
+        command.current_dir(cwd);
+    }
+
     match configuration.programming_language {
         ProgrammingLanguage::Python => configure_python(&configuration, &mut command)?,
         ProgrammingLanguage::JavaScript => configure_javascript(&configuration, &mut command)?,
         ProgrammingLanguage::Rust => configure_rust(&configuration, &mut command)?,
         ProgrammingLanguage::Unknown => return Err(RunnerError::UnknownProgrammingLanguage),
-    }
-
-    // Set as current working directory the workspace folder
-    if let Some(cwd) = &configuration.cwd {
-        debug!(cwd, "Setting current working directory");
-        command.current_dir(cwd);
     }
 
     // Set environment variables
