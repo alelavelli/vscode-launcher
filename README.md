@@ -31,8 +31,15 @@ expected output:
 
 ```sh
 The workspace <WORKSPACE> contains the following configurations:
-    - Configuration 1
-    - Configuration 2
+┌──────────────────────────────────────────────┬──────────────┐
+│ name                                         │ language     │
+├──────────────────────────────────────────────┼──────────────┤
+│ Python Debugger: Current File                │ Python       │
+├──────────────────────────────────────────────┼──────────────┤
+│ Backend                                      │ Rust         │
+├──────────────────────────────────────────────┼──────────────┤
+│ Frontend                                     │ JavaScript   │
+└──────────────────────────────────────────────┴──────────────┘
 ```
 
 ### Run configuration
@@ -40,3 +47,7 @@ The workspace <WORKSPACE> contains the following configurations:
 ```sh
 vscl run -w <WORKSPACE> -n <CONFIGURATION>
 ```
+
+## Supported Languages
+
+VSCL supports Python, Rust and JavaScript launch configurations.
