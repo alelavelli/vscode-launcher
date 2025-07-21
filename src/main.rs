@@ -1,5 +1,6 @@
 use clap::{Parser, Subcommand};
 use vscl::model::Configuration;
+use vscl::view::print_configurations_info;
 
 use std::path::Path;
 
@@ -63,9 +64,7 @@ fn main() {
             } else {
                 let launch_json = result.unwrap();
                 println!("The workspace {workspace} contains the following configurations:");
-                for config in launch_json.configurations {
-                    println!("    - {} ({})", config.name, config.programming_language);
-                }
+                print_configurations_info(launch_json.configurations);
             }
         }
         Commands::Run { workspace, name } => {
@@ -77,23 +76,26 @@ fn main() {
                 );
             } else {
                 let launch_json = result.unwrap();
-                let filter_configuration: Vec<Configuration> = launch_json
+                let filter_configuration: Vec<&Configuration> = launch_json
                     .configurations
-                    .into_iter()
+                    .iter()
                     .filter(|config| &config.name == name)
                     .collect();
 
                 if filter_configuration.is_empty() {
                     println!(
-                        "Configuration `{name}` is not present in the workspace `{workspace}`"
+                        "Configuration `{name}` is not present in the workspace `{workspace}`. Here the available configurations:"
                     );
+                    print_configurations_info(launch_json.configurations);
                 } else if filter_configuration.len() > 1 {
                     println!(
                         "Found more than one configuration with name `{name}` for workspace `{workspace}`"
-                    )
+                    );
+                    print_configurations_info(launch_json.configurations);
                 } else {
                     println!("Ready to run configuration {name}");
-                    let result = run_config(filter_configuration.into_iter().next().unwrap());
+                    let config_to_run = filter_configuration.into_iter().next().unwrap();
+                    let result = run_config(config_to_run.clone());
                     if result.is_err() {
                         println!(
                             "Ops, an error has been occurred. Got {}",

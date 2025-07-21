@@ -55,10 +55,20 @@ fn configure_python(
 }
 
 fn configure_javascript(
-    _configuration: &Configuration,
-    _command: &mut Command,
+    configuration: &Configuration,
+    command: &mut Command,
 ) -> Result<(), RunnerError> {
-    todo!()
+    let command_string =
+        configuration
+            .command
+            .as_ref()
+            .ok_or(RunnerError::InvalidConfiguration(
+                "In JavaScript configuration, command field must be present".into(),
+            ))?;
+
+    command.arg(command_string);
+
+    Ok(())
 }
 
 /// Prepare the configuration to run a Rust program.

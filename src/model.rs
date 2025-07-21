@@ -9,7 +9,7 @@ pub struct LaunchJson {
     pub configurations: Vec<Configuration>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Configuration {
     #[serde(default = "ProgrammingLanguage::default")]
     pub programming_language: ProgrammingLanguage,
@@ -35,7 +35,7 @@ pub struct Configuration {
     pub cargo: Option<CargoConfig>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct CargoConfig {
     pub args: Vec<String>,
     pub filter: Option<HashMap<String, String>>,

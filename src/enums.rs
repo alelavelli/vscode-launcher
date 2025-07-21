@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 /// Enumeration of the supported programming language by vscl
 ///
 /// When it cannot infer the language, then Unknown is used
-#[derive(Default, Debug, Serialize, Deserialize)]
+#[derive(Default, Debug, Serialize, Deserialize, Clone, Copy)]
 pub enum ProgrammingLanguage {
     JavaScript,
     Python,

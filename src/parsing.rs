@@ -22,7 +22,7 @@ pub fn parse_launch_json(path: &Path) -> Result<LaunchJson, Box<dyn Error>> {
     for line in file_string.lines() {
         if !line.trim_ascii_start().starts_with("//") {
             // Replace the workspace placeholder with the actual path
-            cleaned_string.push_str(&line.replace(WORKSPACE_FOLDER, ".")); //path.to_str().unwrap()));
+            cleaned_string.push_str(&line.replace(WORKSPACE_FOLDER, path.to_str().unwrap())); //path.to_str().unwrap()));
         }
     }
 
