@@ -34,8 +34,8 @@ pub fn parse_launch_json(path: &Path) -> Result<LaunchJson, Box<dyn Error>> {
     );
     // Set cwd as the given path if it is missing in the configuration
     for configuration in launch_json.configurations.iter_mut() {
-        if configuration.cwd.is_none() | configuration.cwd.as_ref().is_some_and(|cwd| cwd == ".") {
-            configuration.cwd = Some(path.to_str().unwrap().into());
+        if configuration.cwd.is_none() {
+            configuration.cwd = Some(".".to_string());
         }
 
         match configuration.config_type.as_str() {
